@@ -68,19 +68,113 @@ class JobSpider(Spider):
     ACTION_CRAWL_ERROR = 'ERROR_CRAWNLING'
 
     COMMON_TAGS = [
+        u'angular',
         u'cdi',
         u'cdd',
-        u'télétravail',
-        u'télé-travail',
-        u'stage',
-        u'freelance',
-        u'mysql'
-        u'postgresql',
         u'django',
         u'flask',
+        u'freelance',
+        u'hadoop',
+        u'javascript'
+        u'mysql'
+        u'postgresql',
+        u'spark',
+        u'sql',
+        u'stage',
         u'turbogears',
         u'turbo gears',
-        u'web2py'
+        u'télétravail',
+        u'télé-travail',
+        u'web2py',
+        u'accessibilité',
+        u'ajax',
+        u'android',
+        u'angular',
+        u'angularjs',
+        u'angular js',
+        u'angular.js',
+        u'apache',
+        u'backbone.js',
+        u'bash',
+        u'bootstrap',
+        u'cassandra',
+        u'centos',
+        u'cloud computing',
+        u'cms',
+        u'couchdb',
+        u'crm',
+        u'css',
+        u'data',
+        u'debian',
+        u'design pattens',
+        u'django',
+        u'docker',
+        u'drupal',
+        u'elasticsearch',
+        u'elastic search',
+        u'elk',
+        u'erp',
+        u'ffmpeg',
+        u'flume',
+        u'git',
+        u'gnu',
+        u'hadoop',
+        u'haproxy',
+        u'hbase',
+        u'html',
+        u'http',
+        u'imagemagick',
+        u'ios',
+        u'j2ee',
+        u'java',
+        u'javascript',
+        u'jenkins',
+        u'jira',
+        u'jquery',
+        u'kafka',
+        u'kubernetes',
+        u'lamp',
+        u'linux',
+        u'mapreduce',
+        u'mesos',
+        u'moa',
+        u'mongodb',
+        u'mysql',
+        u'ness',
+        u'node.js',
+        u'nosql',
+        u'odoo',
+        u'openstack',
+        u'php',
+        u'postgresql',
+        u'python',
+        u'reactjs',
+        u'react.js',
+        u'redhat',
+        u'responsive-design',
+        u'ruby',
+        u'ruby on rails',
+        u'référencement',
+        u'saas',
+        u'scala',
+        u'seo',
+        u'shell',
+        u'solr',
+        u'spark',
+        u'spring',
+        u'suse',
+        u'swift',
+        u'tomcat',
+        u'tornado',
+        u'ux',
+        u'varnish',
+        u'versioning',
+        u'web',
+        u'web services',
+        u'websockets',
+        u'xhtml',
+        u'xml',
+        u'zend'
     ]
 
     CONDITION_TAGS = (
@@ -248,6 +342,7 @@ class JobSpider(Spider):
                     # (it means that the page has already been crawled
                     try:
                         url = self._get_from_list__url(job)
+
                     except NotCrawlable:
                         break
 
@@ -265,6 +360,7 @@ class JobSpider(Spider):
                         yield prefilled_job_item
 
             next_page_url = self._get_from_list__next_page(response)
+
             if next_page_url:
                 yield Request(url=next_page_url)
         except NotFound, exc:
@@ -298,7 +394,6 @@ class JobSpider(Spider):
         self.get_connector().log(self.name, self.ACTION_CRAWL_JOB, response.url)
 
         job_item = response.meta['item']
-
         try:
             job_container = self._get_from_page__container(response)
             job_item['url'] = response.url
@@ -444,6 +539,24 @@ class JobSpider(Spider):
                 return None
             raise
 
+    def _extract_all(self, container, selector_name, required=True):
+        """
+
+        :param container: html node
+        :param selector_name: name of selector (without suffix '__xpath' or '__css')
+        :param required: if True: if nothing to extracr raise NotFound. Else, return None
+        :return: list of nodes
+        """
+        items = []
+        try:
+            for tag_node in self._extract(container, selector_name, required=True):
+                items.append(tag_node.extract().strip())
+            return items
+        except NotFound:
+            if not required:
+                return []
+            raise
+
     def _extract(self, container, selector_name, resolve_selector_name=True, selector_type=None, required=True,
                  no_resolve_selector_value=None):
         """
@@ -478,7 +591,7 @@ class JobSpider(Spider):
                     )
                 except NotFound:
                     pass  # We raise after iterate selectors options
-            raise NotFound("Can't found value for %s" % selector_name)
+            raise NotFound("Can't find list value for %s" % selector_name)
 
         if selector_type == 'css':
             extract = container.css(selector)
@@ -487,7 +600,7 @@ class JobSpider(Spider):
 
         if not extract:
             if required:
-                raise NotFound("Can't found value for %s" % selector_name)
+                raise NotFound("Can't find value for %s" % selector_name)
             else:
                 return None
 
